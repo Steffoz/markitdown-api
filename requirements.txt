@@ -1,0 +1,4 @@
+flask
+markitdown
+requests
+gunicorn
