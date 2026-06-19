@@ -1,34 +1,32 @@
-from flask import Flask, request, jsonify
-from markitdown import MarkItDown
-import requests
-import os
-
-app = Flask(__name__)
-md = MarkItDown()
-
 @app.route("/convert", methods=["POST"])
 def convert():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    url = data["url"]
-    nome = data.get("nome", "file.pdf")
+        print("DEBUG DATA:", data)
 
-    # scarica file
-    r = requests.get(url)
-    path = f"./{nome}.pdf"
+        if not data:
+            return jsonify({"error": "No JSON received"}), 400
 
-    with open(path, "wb") as f:
-        f.write(r.content)
+        url = data.get("url")
+        nome = data.get("nome", "file")
 
-    # conversione
-    result = md.convert(path)
+        if not url:
+            return jsonify({"error": "Missing url"}), 400
 
-    # cleanup (IMPORTANTE)
-    os.remove(path)
+        r = requests.get(url)
+        path = f"./{nome}.pdf"
 
-    return jsonify({
-        "text": result.text_content
-    })
+        with open(path, "wb") as f:
+            f.write(r.content)
 
-if __name__ == "__main__":
-    app.run(port=5005, debug=True)
+        result = md.convert(path)
+
+        os.remove(path)
+
+        return jsonify({
+            "text": result.text_content
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
