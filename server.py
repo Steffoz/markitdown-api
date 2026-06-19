@@ -1,3 +1,11 @@
+from flask import Flask, request, jsonify
+from markitdown import MarkItDown
+import requests
+import os
+
+app = Flask(__name__)
+md = MarkItDown()
+
 @app.route("/convert", methods=["POST"])
 def convert():
     try:
@@ -5,14 +13,11 @@ def convert():
 
         print("DEBUG DATA:", data)
 
-        if not data:
-            return jsonify({"error": "No JSON received"}), 400
-
         url = data.get("url")
         nome = data.get("nome", "file")
 
         if not url:
-            return jsonify({"error": "Missing url"}), 400
+            return jsonify({"error": "missing url"}), 400
 
         r = requests.get(url)
         path = f"./{nome}.pdf"
@@ -30,3 +35,7 @@ def convert():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run(port=5005, debug=True)
